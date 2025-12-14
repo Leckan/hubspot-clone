@@ -11,12 +11,36 @@ export const UserRoleSchema = z.enum(['admin', 'user', 'manager']);
 export const CompanySizeSchema = z.enum(['startup', 'small', 'medium', 'large', 'enterprise']);
 
 // Base validation schemas
-export const EmailSchema = z.string().email('Invalid email format');
+export const EmailSchema = z.string()
+  .min(1, 'Email is required')
+  .max(254, 'Email too long')
+  .email('Invalid email format')
+  .refine((email) => {
+    // Additional email validation
+    const parts = email.split('@')
+    if (parts.length !== 2) return false
+    
+    const [localPart, domain] = parts
+    
+    // Local part validation
+    if (localPart.length === 0 || localPart.length > 64) return false
+    if (localPart.includes('..')) return false
+    if (localPart.startsWith('.') || localPart.endsWith('.')) return false
+    
+    // Domain validation
+    if (domain.length === 0 || domain.length > 253) return false
+    if (domain.includes('..')) return false
+    
+    return true
+  }, 'Invalid email format');
 
-export const PhoneSchema = z.string().regex(
-  /^[\+]?[1-9][\d]{0,15}$/,
-  'Invalid phone number format'
-).optional();
+export const PhoneSchema = z.string()
+  .regex(
+    /^[\+]?[1-9][\d]{6,14}$/,
+    'Invalid phone number format (7-15 digits, optional + prefix)'
+  )
+  .optional()
+  .or(z.literal(''));
 
 export const OrganizationIdSchema = z.string().min(1, 'Organization ID is required');
 
@@ -63,11 +87,30 @@ export const UpdateCompanySchema = CreateCompanySchema.partial().omit({ organiza
 
 // Contact validation schemas
 export const CreateContactSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(255, 'First name too long'),
-  lastName: z.string().min(1, 'Last name is required').max(255, 'Last name too long'),
-  email: EmailSchema,
-  phone: PhoneSchema,
-  jobTitle: z.string().max(255, 'Job title too long').optional(),
+  firstName: z.string()
+    .min(1, 'First name is required')
+    .max(255, 'First name too long')
+    .refine((name) => name.trim().length > 0, 'First name cannot be only whitespace')
+    .transform((name) => name.trim().replace(/\s+/g, ' ')),
+  lastName: z.string()
+    .min(1, 'Last name is required')
+    .max(255, 'Last name too long')
+    .refine((name) => name.trim().length > 0, 'Last name cannot be only whitespace')
+    .transform((name) => name.trim().replace(/\s+/g, ' ')),
+  email: EmailSchema.transform((email) => email.toLowerCase().trim()),
+  phone: PhoneSchema.transform((phone) => {
+    if (!phone) return phone
+    // Sanitize phone number
+    const cleaned = phone.trim()
+    if (cleaned.startsWith('+')) {
+      return '+' + cleaned.slice(1).replace(/\D/g, '')
+    }
+    return cleaned.replace(/\D/g, '')
+  }),
+  jobTitle: z.string()
+    .max(255, 'Job title too long')
+    .optional()
+    .transform((title) => title ? title.trim().replace(/\s+/g, ' ') : title),
   companyId: z.string().optional(),
   organizationId: OrganizationIdSchema,
 });

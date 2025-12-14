@@ -41,6 +41,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          organizationId: user.organizationId,
         }
       },
     }),
@@ -58,6 +59,7 @@ export const authOptions: NextAuthOptions = {
         // Only store essential data in JWT to keep it small
         token.role = user.role
         token.userId = user.id
+        token.organizationId = user.organizationId
       }
       return token
     },
@@ -65,6 +67,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.userId as string
         session.user.role = token.role as string
+        session.user.organizationId = token.organizationId as string
       }
       return session
     },

@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
 
 function DashboardContent() {
   const { user, hasRole, hasPermission } = useAuth()
@@ -56,11 +57,11 @@ function DashboardContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {hasPermission("write", "contact") && (
-                  <Button className="w-full" variant="outline" disabled>
-                    Add Contact (Coming Soon)
+                <Link href="/contacts">
+                  <Button className="w-full" variant="outline">
+                    Manage Contacts
                   </Button>
-                )}
+                </Link>
                 {hasPermission("write", "deal") && (
                   <Button className="w-full" variant="outline" disabled>
                     Create Deal (Coming Soon)
@@ -70,11 +71,6 @@ function DashboardContent() {
                   <Button className="w-full" variant="outline" disabled>
                     Add Company (Coming Soon)
                   </Button>
-                )}
-                {!hasPermission("write", "contact") && (
-                  <p className="text-sm text-gray-500">
-                    Contact your administrator for write permissions
-                  </p>
                 )}
               </div>
             </CardContent>
