@@ -55,8 +55,14 @@ export async function POST(request: NextRequest) {
     console.error("Registration error:", error)
     
     if (error instanceof Error && error.name === "ZodError") {
+      // Parse Zod error to get specific field errors
+      const zodError = error as any
+      const fieldErrors = zodError.errors?.map((err: any) => 
+        `${err.path.join('.')}: ${err.message}`
+      ).join(', ') || 'Invalid input data'
+      
       return NextResponse.json(
-        { error: "Invalid input data" },
+        { error: `Invalid input: ${fieldErrors}` },
         { status: 400 }
       )
     }

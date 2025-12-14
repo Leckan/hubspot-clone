@@ -20,9 +20,12 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors },
+
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
   })
+
+
 
   const onSubmit = async (data: RegisterInput) => {
     setIsLoading(true)
@@ -37,6 +40,7 @@ export default function RegisterPage() {
           email: data.email,
           name: data.name,
           password: data.password,
+          confirmPassword: data.confirmPassword,
           organizationId: data.organizationId,
         }),
       })
@@ -142,6 +146,7 @@ export default function RegisterPage() {
               type="submit"
               className="w-full"
               disabled={isLoading}
+
             >
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
