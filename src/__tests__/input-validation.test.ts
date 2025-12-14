@@ -16,22 +16,7 @@ import {
   OrganizationIdSchema,
   DealStageSchema
 } from '@/lib/validations'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import test from 'node:test'
-import { describe } from 'zod'
+import { describe, test, expect } from '@jest/globals'
 
 // Simple generators for valid data that match the validation patterns
 const validEmailArb = fc.tuple(
@@ -132,6 +117,46 @@ const validUserDataArb = fc.record({
 })
 
 describe('Input Validation - Property 31: Input validation before storage', () => {
+
+  /**
+   * Property 4: Invalid email rejection
+   * Feature: hubspot-clone, Property 4: Invalid email rejection
+   * For any contact creation attempt with malformed email, the system should reject 
+   * the operation and maintain current state
+   * Validates: Requirements 1.4
+   */
+  test('Property 4: Invalid email rejection', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.record({
+          firstName: validNameArb,
+          lastName: validNameArb,
+          email: invalidEmailArb, // This is the key - invalid email
+          organizationId: validOrganizationIdArb
+        }),
+        async (contactDataWithInvalidEmail) => {
+          // Attempt to validate contact data with invalid email
+          const result = CreateContactSchema.safeParse(contactDataWithInvalidEmail)
+          
+          // The validation should fail for invalid email
+          expect(result.success).toBe(false)
+          
+          if (!result.success) {
+            // Should have validation errors specifically about email
+            expect(result.error.issues.length).toBeGreaterThan(0)
+            
+            // At least one error should be related to email validation
+            const emailErrors = result.error.issues.filter(issue => 
+              issue.path.includes('email') || 
+              issue.message.toLowerCase().includes('email')
+            )
+            expect(emailErrors.length).toBeGreaterThan(0)
+          }
+        }
+      ),
+      { numRuns: 100 }
+    )
+  })
 
   /**
    * Property 31: Input validation before storage
