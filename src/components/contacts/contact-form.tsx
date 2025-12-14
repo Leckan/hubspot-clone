@@ -115,7 +115,7 @@ export function ContactForm({ contact, onSuccess, onCancel }: ContactFormProps) 
           // Convert empty strings to undefined for optional fields
           phone: data.phone || undefined,
           jobTitle: data.jobTitle || undefined,
-          companyId: data.companyId || undefined,
+          companyId: data.companyId === 'no-company' ? undefined : data.companyId || undefined,
         }),
       })
 
@@ -239,7 +239,7 @@ export function ContactForm({ contact, onSuccess, onCancel }: ContactFormProps) 
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">No company</SelectItem>
+                  <SelectItem value="no-company">No company</SelectItem>
                   {companies.map((company) => (
                     <SelectItem key={company.id} value={company.id}>
                       {company.name}
