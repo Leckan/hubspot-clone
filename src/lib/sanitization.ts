@@ -70,6 +70,25 @@ export function sanitizeContactInput(input: any): any {
 }
 
 /**
+ * Sanitizes company input data
+ */
+export function sanitizeCompanyInput(input: any): any {
+  if (!input || typeof input !== 'object') {
+    return input
+  }
+  
+  return {
+    ...input,
+    name: sanitizeString(input.name),
+    domain: sanitizeString(input.domain),
+    industry: sanitizeString(input.industry),
+    size: sanitizeString(input.size),
+    phone: sanitizePhone(input.phone),
+    address: sanitizeString(input.address),
+  }
+}
+
+/**
  * Validates email format with enhanced checks
  */
 export function isValidEmailFormat(email: string): boolean {
