@@ -20,6 +20,23 @@ export const PhoneSchema = z.string().regex(
 
 export const OrganizationIdSchema = z.string().min(1, 'Organization ID is required');
 
+// Authentication validation schemas
+export const loginSchema = z.object({
+  email: EmailSchema,
+  password: z.string().min(1, 'Password is required'),
+});
+
+export const registerSchema = z.object({
+  email: EmailSchema,
+  name: z.string().min(1, 'Name is required').max(255, 'Name too long'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+  organizationId: OrganizationIdSchema,
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
 // User validation schemas
 export const CreateUserSchema = z.object({
   email: EmailSchema,
@@ -158,6 +175,8 @@ export const PaginatedResponseSchema = <T>(dataSchema: z.ZodSchema<T>) => z.obje
 });
 
 // Type inference helpers
+export type LoginInput = z.infer<typeof loginSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
 export type UpdateUserInput = z.infer<typeof UpdateUserSchema>;
 export type CreateCompanyInput = z.infer<typeof CreateCompanySchema>;

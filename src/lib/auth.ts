@@ -1,11 +1,10 @@
 import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // Remove PrismaAdapter when using JWT strategy with credentials
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -28,8 +27,6 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // For now, we'll implement a simple password check
-        // In a real app, you'd hash passwords and compare them
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password || ""
@@ -50,6 +47,7 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24 hours
   },
   pages: {
     signIn: "/auth/signin",
@@ -57,16 +55,20 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        // Only store essential data in JWT to keep it small
         token.role = user.role
+        token.userId = user.id
       }
       return token
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.sub!
+        session.user.id = token.userId as string
         session.user.role = token.role as string
       }
       return session
     },
   },
+  // Add JWT secret and other security options
+  secret: process.env.NEXTAUTH_SECRET,
 }

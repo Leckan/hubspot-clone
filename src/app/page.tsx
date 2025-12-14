@@ -1,6 +1,7 @@
 "use client"
 
 import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -12,6 +13,7 @@ import {
 
 export default function Home() {
   const { data: session, status } = useSession()
+  const router = useRouter()
 
   if (status === "loading") {
     return (
@@ -46,8 +48,12 @@ export default function Home() {
                     contacts, deals, and pipeline.
                   </p>
                   <div className="flex gap-4">
-                    <Button>View Dashboard</Button>
-                    <Button variant="outline">Manage Contacts</Button>
+                    <Button onClick={() => router.push("/dashboard")}>
+                      View Dashboard
+                    </Button>
+                    <Button variant="outline" disabled>
+                      Manage Contacts (Coming Soon)
+                    </Button>
                   </div>
                 </div>
               ) : (
@@ -57,8 +63,15 @@ export default function Home() {
                     an account.
                   </p>
                   <div className="flex gap-4">
-                    <Button>Sign In</Button>
-                    <Button variant="outline">Sign Up</Button>
+                    <Button onClick={() => router.push("/auth/signin")}>
+                      Sign In
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => router.push("/auth/register")}
+                    >
+                      Sign Up
+                    </Button>
                   </div>
                 </div>
               )}
