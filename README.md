@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HubSpot Clone CRM System
+
+A comprehensive customer relationship management (CRM) system built with Next.js 14, TypeScript, Prisma, and Neon PostgreSQL. This application replicates core HubSpot functionality including contact management, deal pipeline tracking, company management, and analytics dashboard.
+
+## Features
+
+- **Contact Management**: Store and organize customer information
+- **Deal Pipeline**: Visual Kanban-style deal tracking through sales stages
+- **Company Management**: Organize contacts by their associated organizations
+- **Activity Tracking**: Log interactions and schedule tasks
+- **Analytics Dashboard**: Monitor sales performance and KPIs
+- **Authentication**: Secure user authentication with NextAuth.js
+- **Responsive Design**: Mobile-friendly interface with Tailwind CSS
+
+## Tech Stack
+
+- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
+- **UI Components**: shadcn/ui, Radix UI
+- **Backend**: Next.js API Routes, Prisma ORM
+- **Database**: Neon PostgreSQL
+- **Authentication**: NextAuth.js
+- **Form Handling**: React Hook Form with Zod validation
+- **Icons**: Lucide React
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ (Note: Next.js 14+ requires Node.js 20.9.0+)
+- npm or yarn
+- Neon PostgreSQL database
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone <repository-url>
+cd hubspot-clone
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Set up environment variables:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and add your database connection string and other required variables:
+
+```env
+DATABASE_URL="postgresql://username:password@ep-example-123456.us-east-1.aws.neon.tech/neondb?sslmode=require"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key-here"
+```
+
+4. Set up the database:
+
+```bash
+npm run db:push
+npm run db:generate
+```
+
+5. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint issues
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:push` - Push schema changes to database
+- `npm run db:migrate` - Run database migrations
+- `npm run db:studio` - Open Prisma Studio
 
-## Learn More
+## Database Schema
 
-To learn more about Next.js, take a look at the following resources:
+The application uses the following main entities:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Users**: Authentication and user management
+- **Companies**: Business entities that can have multiple contacts
+- **Contacts**: Individual people associated with companies
+- **Deals**: Sales opportunities with pipeline stages
+- **Activities**: Tasks, calls, emails, and other interactions
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```
+src/
+├── app/                 # Next.js App Router pages
+├── components/          # React components
+│   ├── ui/             # shadcn/ui components
+│   └── providers/      # Context providers
+├── lib/                # Utility functions and configurations
+├── types/              # TypeScript type definitions
+└── generated/          # Generated Prisma client
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
