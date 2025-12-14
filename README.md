@@ -54,7 +54,7 @@ cp .env.example .env
 Edit `.env` and add your database connection string and other required variables:
 
 ```env
-DATABASE_URL="postgresql://username:password@ep-example-123456.us-east-1.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL="###"
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="your-secret-key-here"
 ```
