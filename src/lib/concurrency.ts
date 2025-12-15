@@ -166,6 +166,8 @@ export class OptimisticLockManager {
         return await prisma.company.findUnique({ where: { id } }) as T | null
       case 'activity':
         return await prisma.activity.findUnique({ where: { id } }) as T | null
+      case 'user':
+        return await prisma.user.findUnique({ where: { id } }) as T | null
       default:
         throw new Error(`Unknown entity type: ${entityType}`)
     }
@@ -237,6 +239,21 @@ export class OptimisticLockManager {
             throw new ConflictError(`Version conflict for ${entityType} ${id}`)
           }
           updated = await tx.activity.update({
+            where: { id },
+            data: {
+              ...(updateData as any),
+              version: expectedVersion + 1,
+              updatedAt: new Date()
+            }
+          })
+          break
+
+        case 'user':
+          current = await tx.user.findUnique({ where: { id } })
+          if (!current || current.version !== expectedVersion) {
+            throw new ConflictError(`Version conflict for ${entityType} ${id}`)
+          }
+          updated = await tx.user.update({
             where: { id },
             data: {
               ...(updateData as any),
@@ -487,6 +504,8 @@ export async function getWithVersion<T extends VersionedEntity>(
       return await prisma.company.findUnique({ where: { id } }) as T | null
     case 'activity':
       return await prisma.activity.findUnique({ where: { id } }) as T | null
+    case 'user':
+      return await prisma.user.findUnique({ where: { id } }) as T | null
     default:
       throw new Error(`Unknown entity type: ${entityType}`)
   }

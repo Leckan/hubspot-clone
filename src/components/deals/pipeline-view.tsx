@@ -17,6 +17,7 @@ import {
 import { DealForm } from "@/components/deals/deal-form"
 import { DealDetail } from "@/components/deals/deal-detail"
 import { Deal, DealStage } from "@/types"
+import { PipelineSkeleton } from "@/components/ui/loading-skeleton"
 
 interface DealWithRelations {
   id: string
@@ -203,11 +204,7 @@ export function PipelineView() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Loading pipeline...</div>
-      </div>
-    )
+    return <PipelineSkeleton />
   }
 
   if (!pipelineData) {
@@ -248,7 +245,7 @@ export function PipelineView() {
       </div>
 
       {/* Pipeline Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
@@ -288,14 +285,14 @@ export function PipelineView() {
 
       {/* Pipeline Kanban Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 overflow-x-auto">
+        <div className="flex lg:grid lg:grid-cols-6 gap-4 overflow-x-auto pb-4">
           {pipelineData.dealsByStage.map((stageData) => {
             const analytics = pipelineData.analytics.find(
               (a) => a.stage === stageData.stage
             )
 
             return (
-              <div key={stageData.stage} className="min-w-[280px]">
+              <div key={stageData.stage} className="min-w-[280px] lg:min-w-0 flex-shrink-0">
                 <Card>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">

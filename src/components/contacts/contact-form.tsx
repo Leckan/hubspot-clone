@@ -142,7 +142,7 @@ export function ContactForm({ contact, onSuccess, onCancel }: ContactFormProps) 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="firstName"
@@ -150,7 +150,7 @@ export function ContactForm({ contact, onSuccess, onCancel }: ContactFormProps) 
               <FormItem>
                 <FormLabel>First Name *</FormLabel>
                 <FormControl>
-                  <Input placeholder="John" {...field} />
+                  <Input placeholder="John" {...field} className="touch-manipulation" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -163,7 +163,7 @@ export function ContactForm({ contact, onSuccess, onCancel }: ContactFormProps) 
               <FormItem>
                 <FormLabel>Last Name *</FormLabel>
                 <FormControl>
-                  <Input placeholder="Doe" {...field} />
+                  <Input placeholder="Doe" {...field} className="touch-manipulation" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -182,6 +182,7 @@ export function ContactForm({ contact, onSuccess, onCancel }: ContactFormProps) 
                   type="email"
                   placeholder="john.doe@example.com"
                   {...field}
+                  className="touch-manipulation"
                 />
               </FormControl>
               <FormMessage />
@@ -189,7 +190,7 @@ export function ContactForm({ contact, onSuccess, onCancel }: ContactFormProps) 
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="phone"
@@ -201,6 +202,7 @@ export function ContactForm({ contact, onSuccess, onCancel }: ContactFormProps) 
                     type="tel"
                     placeholder="+1 (555) 123-4567"
                     {...field}
+                    className="touch-manipulation"
                   />
                 </FormControl>
                 <FormMessage />
@@ -214,7 +216,7 @@ export function ContactForm({ contact, onSuccess, onCancel }: ContactFormProps) 
               <FormItem>
                 <FormLabel>Job Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="Software Engineer" {...field} />
+                  <Input placeholder="Software Engineer" {...field} className="touch-manipulation" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -252,16 +254,17 @@ export function ContactForm({ contact, onSuccess, onCancel }: ContactFormProps) 
           )}
         />
 
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col sm:flex-row justify-end gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={loading}
+            className="touch-manipulation"
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading} className="touch-manipulation">
             {loading
               ? contact
                 ? "Updating..."

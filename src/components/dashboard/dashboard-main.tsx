@@ -12,6 +12,7 @@ import { KPICards } from "./kpi-cards"
 import { DateRangePicker } from "./date-range-picker"
 import { PipelineAnalytics } from "./pipeline-analytics"
 import { ActivitiesAnalytics } from "./activities-analytics"
+import { DashboardSkeleton } from "@/components/ui/loading-skeleton"
 
 interface DashboardData {
   kpis: {
@@ -185,17 +186,22 @@ export function DashboardMain() {
     fetchDashboardData(true)
   }
 
+  // Show skeleton loading state on initial load
+  if (isLoading && !dashboardData) {
+    return <DashboardSkeleton />
+  }
+
   return (
     <div className="space-y-6">
       {/* Header with Date Range Picker */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Overview of your CRM performance and metrics
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           <DateRangePicker
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
@@ -205,6 +211,7 @@ export function DashboardMain() {
             size="icon"
             onClick={handleRefresh}
             disabled={isRefreshing}
+            className="touch-manipulation"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>

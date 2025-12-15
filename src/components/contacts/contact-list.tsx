@@ -24,6 +24,7 @@ import {
 import { ContactForm } from "./contact-form"
 import { ContactDetail } from "./contact-detail"
 import { Contact, Company } from "@/types"
+import { ContactListSkeleton } from "@/components/ui/loading-skeleton"
 
 interface ContactWithCompany {
   id: string
@@ -148,20 +149,25 @@ export function ContactList({ initialContacts = [], initialPagination }: Contact
     setIsDetailDialogOpen(true)
   }
 
+  // Show skeleton loading state on initial load
+  if (loading && contacts.length === 0) {
+    return <ContactListSkeleton />
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Contacts</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-semibold">Contacts</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Manage your contacts and customer relationships
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4" />
+            <Button className="w-full sm:w-auto touch-manipulation">
+              <Plus className="h-4 w-4 mr-2" />
               Add Contact
             </Button>
           </DialogTrigger>
@@ -179,20 +185,20 @@ export function ContactList({ initialContacts = [], initialPagination }: Contact
 
       {/* Filters */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
+        <CardContent className="pt-4 sm:pt-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search contacts by name or email..."
+                placeholder="Search contacts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 touch-manipulation"
               />
             </div>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4" />
-              Filters
+            <Button variant="outline" size="sm" className="touch-manipulation">
+              <Filter className="h-4 w-4 mr-2 sm:mr-0" />
+              <span className="sm:hidden">Filters</span>
             </Button>
           </div>
         </CardContent>
@@ -226,75 +232,143 @@ export function ContactList({ initialContacts = [], initialPagination }: Contact
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Deals</TableHead>
-                    <TableHead>Activities</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {contacts.map((contact) => (
-                    <TableRow
-                      key={contact.id}
-                      className="cursor-pointer"
-                      onClick={() => handleContactClick(contact)}
-                    >
-                      <TableCell>
-                        <div className="font-medium">
-                          {contact.firstName} {contact.lastName}
-                        </div>
-                        {contact.jobTitle && (
-                          <div className="text-sm text-muted-foreground">
-                            {contact.jobTitle}
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Deals</TableHead>
+                      <TableHead>Activities</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {contacts.map((contact) => (
+                      <TableRow
+                        key={contact.id}
+                        className="cursor-pointer touch-manipulation"
+                        onClick={() => handleContactClick(contact)}
+                      >
+                        <TableCell>
+                          <div className="font-medium">
+                            {contact.firstName} {contact.lastName}
                           </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          {contact.email}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {contact.company ? (
+                          {contact.jobTitle && (
+                            <div className="text-sm text-muted-foreground">
+                              {contact.jobTitle}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
                           <div className="flex items-center gap-2">
-                            <Building className="h-4 w-4 text-muted-foreground" />
-                            {contact.company.name}
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            {contact.email}
                           </div>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {contact.phone ? (
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                            {contact.phone}
+                        </TableCell>
+                        <TableCell>
+                          {contact.company ? (
+                            <div className="flex items-center gap-2">
+                              <Building className="h-4 w-4 text-muted-foreground" />
+                              {contact.company.name}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {contact.phone ? (
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-muted-foreground" />
+                              {contact.phone}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">
+                            {contact._count?.deals || 0}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">
+                            {contact._count?.activities || 0}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="touch-manipulation"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              // Handle menu actions
+                            }}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-3">
+                {contacts.map((contact) => (
+                  <Card
+                    key={contact.id}
+                    className="cursor-pointer touch-manipulation hover:shadow-md transition-shadow"
+                    onClick={() => handleContactClick(contact)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-base">
+                            {contact.firstName} {contact.lastName}
                           </div>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {contact._count?.deals || 0}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {contact._count?.activities || 0}
-                        </span>
-                      </TableCell>
-                      <TableCell>
+                          {contact.jobTitle && (
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {contact.jobTitle}
+                            </div>
+                          )}
+                          
+                          <div className="mt-2 space-y-1">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Mail className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                              <span className="truncate">{contact.email}</span>
+                            </div>
+                            
+                            {contact.company && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <Building className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                <span className="truncate">{contact.company.name}</span>
+                              </div>
+                            )}
+                            
+                            {contact.phone && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                <span>{contact.phone}</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                            <span>{contact._count?.deals || 0} deals</span>
+                            <span>{contact._count?.activities || 0} activities</span>
+                          </div>
+                        </div>
+                        
                         <Button
                           variant="ghost"
                           size="icon-sm"
+                          className="touch-manipulation ml-2"
                           onClick={(e) => {
                             e.stopPropagation()
                             // Handle menu actions
@@ -302,16 +376,16 @@ export function ContactList({ initialContacts = [], initialPagination }: Contact
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
 
               {/* Pagination */}
               {pagination && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6">
-                  <div className="text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+                  <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                     Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
                     {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
                     {pagination.total} contacts
@@ -322,6 +396,7 @@ export function ContactList({ initialContacts = [], initialPagination }: Contact
                       size="sm"
                       disabled={pagination.page <= 1}
                       onClick={() => handlePageChange(pagination.page - 1)}
+                      className="touch-manipulation"
                     >
                       Previous
                     </Button>
@@ -330,6 +405,7 @@ export function ContactList({ initialContacts = [], initialPagination }: Contact
                       size="sm"
                       disabled={pagination.page >= pagination.totalPages}
                       onClick={() => handlePageChange(pagination.page + 1)}
+                      className="touch-manipulation"
                     >
                       Next
                     </Button>

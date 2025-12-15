@@ -4,6 +4,7 @@ import "./globals.css"
 import { AuthProvider } from "@/components/providers/auth-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { Navigation } from "@/components/ui/navigation"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -22,8 +23,19 @@ export default function RootLayout({
       <body className={inter.className}>
         <ErrorBoundary>
           <AuthProvider>
+            <Navigation />
             {children}
-            <Toaster />
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: 'hsl(var(--background))',
+                  color: 'hsl(var(--foreground))',
+                  border: '1px solid hsl(var(--border))',
+                },
+              }}
+            />
           </AuthProvider>
         </ErrorBoundary>
       </body>

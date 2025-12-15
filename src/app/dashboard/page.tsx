@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { signOut } from "next-auth/react"
 import { useAuth } from "@/hooks/use-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Button } from "@/components/ui/button"
@@ -24,10 +23,6 @@ function DashboardContent() {
   const [showCreateDealDialog, setShowCreateDealDialog] = useState(false)
   const [showCreateCompanyDialog, setShowCreateCompanyDialog] = useState(false)
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/auth/signin" })
-  }
-
   const handleDealSuccess = (deal: any) => {
     toast.success("Deal created successfully!")
     setShowCreateDealDialog(false)
@@ -48,31 +43,16 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <p className="text-gray-600">Welcome back, {user?.name}!</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {hasRole("admin") && (
-              <Button variant="outline" disabled>
-                Admin Panel (Coming Soon)
-              </Button>
-            )}
-            <Button onClick={handleSignOut} variant="outline">
-              Sign Out
-            </Button>
-          </div>
-        </div>
 
         {/* Main Dashboard Analytics */}
         <DashboardMain />
 
         {/* Quick Actions Section */}
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mt-6 sm:mt-8">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>User Information</CardTitle>
@@ -96,13 +76,13 @@ function DashboardContent() {
               <CardContent>
                 <div className="space-y-2">
                   <Link href="/contacts">
-                    <Button className="w-full" variant="outline">
+                    <Button className="w-full touch-manipulation" variant="outline">
                       Manage Contacts
                     </Button>
                   </Link>
                   {hasPermission("write", "deal") && (
                     <Button 
-                      className="w-full" 
+                      className="w-full touch-manipulation" 
                       variant="outline"
                       onClick={() => setShowCreateDealDialog(true)}
                     >
@@ -111,7 +91,7 @@ function DashboardContent() {
                   )}
                   {hasPermission("write", "company") && (
                     <Button 
-                      className="w-full" 
+                      className="w-full touch-manipulation" 
                       variant="outline"
                       onClick={() => setShowCreateCompanyDialog(true)}
                     >
