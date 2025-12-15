@@ -55,7 +55,7 @@ const validSessionArb = fc.record({
     name: validNameArb,
     role: userRoleArb,
   }),
-  expires: fc.integer({ min: Date.now() + 1000, max: Date.now() + 24 * 60 * 60 * 1000 }).map(timestamp => new Date(timestamp).toISOString()),
+  expires: fc.integer({ min: 1000, max: 24 * 60 * 60 * 1000 }).map(offset => new Date(Date.now() + offset).toISOString()),
 })
 
 // Expired session generator
@@ -66,7 +66,7 @@ const expiredSessionArb = fc.record({
     name: validNameArb,
     role: userRoleArb,
   }),
-  expires: fc.integer({ min: Date.now() - 24 * 60 * 60 * 1000, max: Date.now() - 1000 }).map(timestamp => new Date(timestamp).toISOString()),
+  expires: fc.integer({ min: -24 * 60 * 60 * 1000, max: -1000 }).map(offset => new Date(Date.now() + offset).toISOString()),
 })
 
 // Helper function to simulate session expiration check
