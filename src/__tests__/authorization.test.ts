@@ -268,8 +268,6 @@ describe('Authorization Properties', () => {
           // Check if user has the required permission
           const hasRequiredPermission = hasPermission(userRole, action as any, resourceType as any)
           
-
-          
           if (hasRequiredPermission) {
             // User with sufficient permission should be granted access
             expect(resourceAccess.allowed).toBe(true)
