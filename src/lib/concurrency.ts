@@ -84,7 +84,8 @@ export class OptimisticLockManager {
               }
 
             case ConflictResolutionStrategy.OVERWRITE:
-              // Continue with update, ignoring version conflict
+              // Use current version to overwrite, ignoring version conflict
+              expectedVersion = currentEntity.version
               break
 
             case ConflictResolutionStrategy.RETRY:

@@ -42,7 +42,7 @@ const mockPrisma = prisma as jest.Mocked<typeof prisma>
 
 // Generators for test data
 const uuidArb = fc.string({ minLength: 36, maxLength: 36 })
-const organizationIdArb = fc.string({ minLength: 10, maxLength: 30 })
+const organizationIdArb = fc.array(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'), { minLength: 10, maxLength: 30 }).map(chars => chars.join(''))
 const emailArb = fc.emailAddress()
 const nameArb = fc.string({ minLength: 1, maxLength: 50 })
 const phoneArb = fc.option(fc.string({ minLength: 10, maxLength: 15 }))

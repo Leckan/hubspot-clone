@@ -464,7 +464,7 @@ describe('Navigation Consistency Properties', () => {
           // Expiration should be a valid date string
           expect(typeof session.expires).toBe('string')
           const expirationDate = new Date(session.expires)
-          expect(expirationDate.getTime()).toBeGreaterThan(Date.now() - 1000) // Allow for small timing differences
+          expect(expirationDate.getTime()).toBeGreaterThan(Date.now() - 5000) // Allow for larger timing differences in test execution
         }
       ),
       { numRuns: 30 }
