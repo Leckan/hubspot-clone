@@ -6,3 +6,6 @@ import '@testing-library/jest-dom'
 
 // Setup for property-based testing
 process.env.NODE_ENV = 'test'
+
+// Global mock setup
+global.jest = require('jest')

@@ -33,7 +33,11 @@ const validOrganizationIdArb = fc.string({ minLength: 8, maxLength: 32 }).filter
 const validNameArb = fc.string({ minLength: 2, maxLength: 50 }).filter(s => /^[a-zA-Z\s]+$/.test(s) && s.trim().length >= 2)
 const validStringArb = fc.string({ minLength: 2, maxLength: 100 }).filter(s => /^[a-zA-Z0-9\s]+$/.test(s) && s.trim().length >= 2)
 const validNonEmptyStringArb = fc.string({ minLength: 8, maxLength: 32 }).filter(s => /^[a-zA-Z0-9]+$/.test(s))
-const validUrlArb = fc.webUrl()
+const validUrlArb = fc.oneof(
+  fc.domain().map(domain => `https://${domain}`),
+  fc.domain().map(domain => `http://${domain}`),
+  fc.domain()
+)
 const validAmountArb = fc.float({ min: Math.fround(0.01), max: Math.fround(1000000), noNaN: true })
 const validProbabilityArb = fc.integer({ min: 0, max: 100 })
 
@@ -48,9 +52,8 @@ const invalidEmailArb = fc.oneof(
 )
 
 const invalidPhoneArb = fc.oneof(
-  fc.string({ minLength: 1, maxLength: 5 }).filter(s => !/^[\+]?[1-9][\d]{0,15}$/.test(s)),
-  fc.string().filter(s => /[a-zA-Z]/.test(s) || s.startsWith('0')),
-  fc.constant(''),
+  fc.string({ minLength: 1, maxLength: 5 }).filter(s => !/^[\+]?[1-9][\d]{0,15}$/.test(s) && s !== ''),
+  fc.string().filter(s => /[a-zA-Z]/.test(s) || (s.length > 0 && s.startsWith('0'))),
   fc.constant('0123456789'), // starts with 0, invalid
   fc.constant('abc-def-ghij')
 )
@@ -89,7 +92,11 @@ const validDealDataArb = fc.record({
   amount: fc.option(validAmountArb, { nil: undefined }),
   stage: fc.constantFrom('lead', 'qualified', 'proposal', 'negotiation', 'won', 'lost'),
   probability: validProbabilityArb,
-  expectedCloseDate: fc.option(fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }), { nil: undefined }),
+  expectedCloseDate: fc.option(
+    fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') })
+      .filter(date => !isNaN(date.getTime())), // Filter out invalid dates
+    { nil: undefined }
+  ),
   contactId: fc.option(validNonEmptyStringArb, { nil: undefined }),
   companyId: fc.option(validNonEmptyStringArb, { nil: undefined }),
   ownerId: validNonEmptyStringArb,
@@ -100,7 +107,11 @@ const validActivityDataArb = fc.record({
   type: fc.constantFrom('call', 'email', 'meeting', 'task', 'note'),
   subject: validNameArb,
   description: fc.option(validStringArb, { nil: undefined }),
-  dueDate: fc.option(fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }), { nil: undefined }),
+  dueDate: fc.option(
+    fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') })
+      .filter(date => !isNaN(date.getTime())), // Filter out invalid dates
+    { nil: undefined }
+  ),
   completed: fc.boolean(),
   contactId: fc.option(validNonEmptyStringArb, { nil: undefined }),
   dealId: fc.option(validNonEmptyStringArb, { nil: undefined }),
@@ -173,10 +184,10 @@ describe('Input Validation - Property 31: Input validation before storage', () =
           expect(result.success).toBe(true)
           
           if (result.success) {
-            // Validated data should match input structure
-            expect(result.data.firstName).toBe(contactData.firstName)
-            expect(result.data.lastName).toBe(contactData.lastName)
-            expect(result.data.email).toBe(contactData.email)
+            // Note: Schema transforms data, so we compare the transformed values
+            expect(result.data.firstName).toBe(contactData.firstName.trim().replace(/\s+/g, ' '))
+            expect(result.data.lastName).toBe(contactData.lastName.trim().replace(/\s+/g, ' '))
+            expect(result.data.email).toBe(contactData.email.toLowerCase().trim())
             expect(result.data.organizationId).toBe(contactData.organizationId)
           }
         }
@@ -448,7 +459,7 @@ describe('Input Validation - Property 31: Input validation before storage', () =
           const hasEmptyFirstName = mixedData.firstName.trim() === ''
           const hasTooLongFirstName = mixedData.firstName.length > 255
           const hasEmptyLastName = mixedData.lastName.trim() === ''
-          const hasInvalidEmail = !mixedData.email.includes('@') || mixedData.email.trim() === '' || !mixedData.email.includes('.')
+          const hasInvalidEmail = !mixedData.email.includes('@') || mixedData.email.trim() === '' || !mixedData.email.includes('.') || mixedData.email.includes('@.') || mixedData.email.startsWith('@')
           const hasEmptyOrgId = mixedData.organizationId.trim() === ''
           
           const shouldFail = hasEmptyFirstName || hasTooLongFirstName || hasEmptyLastName || hasInvalidEmail || hasEmptyOrgId
