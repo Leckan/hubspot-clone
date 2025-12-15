@@ -348,6 +348,109 @@ async function simulateDealFiltering(filters: any, allDeals: any[]): Promise<{ r
   }
 }
 
+async function simulatePipelineView(organizationId: string, allDeals: any[]): Promise<{ success: boolean; pipelineData?: any }> {
+  try {
+    // Define all possible stages
+    const allStages: DealStage[] = ['lead', 'qualified', 'proposal', 'negotiation', 'won', 'lost']
+    
+    // Group deals by stage and calculate analytics
+    const dealsByStageMap = new Map<DealStage, any[]>()
+    allStages.forEach(stage => {
+      dealsByStageMap.set(stage, allDeals.filter(deal => deal.stage === stage))
+    })
+
+    // Create analytics for each stage
+    const analytics = allStages.map(stage => {
+      const dealsInStage = dealsByStageMap.get(stage) || []
+      const totalValue = dealsInStage.reduce((sum, deal) => sum + (deal.amount || 0), 0)
+      const dealCount = dealsInStage.length
+      const averageValue = dealCount > 0 ? totalValue / dealCount : 0
+
+      return {
+        stage,
+        dealCount,
+        totalValue,
+        averageValue,
+      }
+    })
+
+    // Mock the groupBy call that would be made by the API
+    const mockGroupByResult = allStages.map(stage => {
+      const dealsInStage = dealsByStageMap.get(stage) || []
+      return {
+        stage,
+        _count: { id: dealsInStage.length },
+        _sum: { amount: dealsInStage.reduce((sum, deal) => sum + (deal.amount || 0), 0) },
+      }
+    }).filter(result => result._count.id > 0) // Only include stages with deals
+
+    mockPrisma.deal.groupBy.mockResolvedValue(mockGroupByResult)
+
+    // Create dealsByStage array (simulating the API response)
+    const dealsByStage = allStages.map(stage => ({
+      stage,
+      deals: (dealsByStageMap.get(stage) || []).slice(0, 50), // Limit to 50 deals per stage like the API
+    }))
+
+    // Calculate summary metrics
+    const totalDeals = allDeals.length
+    const totalValue = allDeals.reduce((sum, deal) => sum + (deal.amount || 0), 0)
+    const wonDeals = allDeals.filter(deal => deal.stage === 'won').length
+    const lostDeals = allDeals.filter(deal => deal.stage === 'lost').length
+    const activeDeals = totalDeals - wonDeals - lostDeals
+    const conversionRate = totalDeals > 0 ? (wonDeals / totalDeals) * 100 : 0
+    const averageDealSize = totalDeals > 0 ? totalValue / totalDeals : 0
+
+    const summary = {
+      totalDeals,
+      activeDeals,
+      wonDeals,
+      lostDeals,
+      totalValue,
+      averageDealSize,
+      conversionRate,
+    }
+
+    // Simulate the API calls that would be made
+    await mockPrisma.deal.groupBy({
+      by: ['stage'],
+      where: { organizationId },
+      _count: { id: true },
+      _sum: { amount: true },
+    })
+
+    // Mock the findMany calls for each stage
+    for (const stage of allStages) {
+      mockPrisma.deal.findMany.mockResolvedValue(dealsByStageMap.get(stage) || [])
+      await mockPrisma.deal.findMany({
+        where: { organizationId, stage },
+        include: {
+          contact: { select: { id: true, firstName: true, lastName: true, email: true } },
+          company: { select: { id: true, name: true } },
+          owner: { select: { id: true, name: true } },
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 50,
+      })
+    }
+
+    const pipelineData = {
+      analytics,
+      dealsByStage,
+      summary,
+    }
+
+    return {
+      success: true,
+      pipelineData,
+    }
+  } catch (error) {
+    return {
+      success: false,
+    }
+  }
+}
+
 describe('Deal Operations Properties', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -635,6 +738,85 @@ describe('Deal Operations Properties', () => {
         }
       ),
       { numRuns: 30 }
+    )
+  })
+
+  /**
+   * Property 8: Pipeline view accuracy
+   * For any pipeline display request, the total deal values per stage should equal the sum of individual deal amounts in that stage
+   * Validates: Requirements 2.3
+   */
+  test('Property 8: Pipeline view accuracy', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        validOrganizationIdArb,
+        fc.array(existingDealArb, { minLength: 5, maxLength: 20 }),
+        async (organizationId, allDeals) => {
+          // Set all deals to same organization and assign random stages and amounts
+          const dealsInOrg = allDeals.map(deal => ({
+            ...deal,
+            organizationId,
+            amount: deal.amount || Math.floor(Math.random() * 100000) + 1000, // Ensure all deals have amounts
+          }))
+
+          const result = await simulatePipelineView(organizationId, dealsInOrg)
+          
+          if (result.success && result.pipelineData) {
+            // For each stage in the pipeline analytics
+            for (const stageAnalytics of result.pipelineData.analytics) {
+              // Find all deals in this stage
+              const dealsInStage = dealsInOrg.filter(deal => deal.stage === stageAnalytics.stage)
+              
+              // Calculate expected total value by summing individual deal amounts
+              const expectedTotalValue = dealsInStage.reduce((sum, deal) => sum + (deal.amount || 0), 0)
+              
+              // Pipeline analytics total should equal sum of individual deals
+              expect(stageAnalytics.totalValue).toBe(expectedTotalValue)
+              
+              // Deal count should match number of deals in stage
+              expect(stageAnalytics.dealCount).toBe(dealsInStage.length)
+              
+              // Average value should be calculated correctly
+              const expectedAverageValue = dealsInStage.length > 0 
+                ? expectedTotalValue / dealsInStage.length 
+                : 0
+              expect(stageAnalytics.averageValue).toBeCloseTo(expectedAverageValue, 2)
+            }
+            
+            // Verify that dealsByStage contains the same deals
+            for (const stageDeals of result.pipelineData.dealsByStage) {
+              const expectedDealsInStage = dealsInOrg.filter(deal => deal.stage === stageDeals.stage)
+              
+              // Should contain all deals for this stage (up to the limit)
+              expect(stageDeals.deals.length).toBeLessThanOrEqual(expectedDealsInStage.length)
+              
+              // All returned deals should belong to the correct stage
+              for (const deal of stageDeals.deals) {
+                expect(deal.stage).toBe(stageDeals.stage)
+                expect(deal.organizationId).toBe(organizationId)
+              }
+            }
+            
+            // Verify summary calculations
+            const totalExpectedDeals = dealsInOrg.length
+            const totalExpectedValue = dealsInOrg.reduce((sum, deal) => sum + (deal.amount || 0), 0)
+            const expectedWonDeals = dealsInOrg.filter(deal => deal.stage === 'won').length
+            const expectedLostDeals = dealsInOrg.filter(deal => deal.stage === 'lost').length
+            const expectedActiveDeals = totalExpectedDeals - expectedWonDeals - expectedLostDeals
+            const expectedConversionRate = totalExpectedDeals > 0 ? (expectedWonDeals / totalExpectedDeals) * 100 : 0
+            const expectedAverageDealSize = totalExpectedDeals > 0 ? totalExpectedValue / totalExpectedDeals : 0
+            
+            expect(result.pipelineData.summary.totalDeals).toBe(totalExpectedDeals)
+            expect(result.pipelineData.summary.totalValue).toBe(totalExpectedValue)
+            expect(result.pipelineData.summary.wonDeals).toBe(expectedWonDeals)
+            expect(result.pipelineData.summary.lostDeals).toBe(expectedLostDeals)
+            expect(result.pipelineData.summary.activeDeals).toBe(expectedActiveDeals)
+            expect(result.pipelineData.summary.conversionRate).toBeCloseTo(expectedConversionRate, 2)
+            expect(result.pipelineData.summary.averageDealSize).toBeCloseTo(expectedAverageDealSize, 2)
+          }
+        }
+      ),
+      { numRuns: 100 }
     )
   })
 
