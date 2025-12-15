@@ -1,0 +1,5 @@
+export { PipelineView } from './pipeline-view'
+export { DealList } from './deal-list'
+export { DealForm } from './deal-form'
+export { DealDetail } from './deal-detail'
+export { DealFilters } from './deal-filters'

@@ -89,6 +89,24 @@ export function sanitizeCompanyInput(input: any): any {
 }
 
 /**
+ * Sanitizes deal input data
+ */
+export function sanitizeDealInput(input: any): any {
+  if (!input || typeof input !== 'object') {
+    return input
+  }
+  
+  return {
+    ...input,
+    title: sanitizeString(input.title),
+    amount: typeof input.amount === 'number' ? input.amount : undefined,
+    stage: sanitizeString(input.stage),
+    probability: typeof input.probability === 'number' ? input.probability : undefined,
+    expectedCloseDate: input.expectedCloseDate ? new Date(input.expectedCloseDate) : undefined,
+  }
+}
+
+/**
  * Validates email format with enhanced checks
  */
 export function isValidEmailFormat(email: string): boolean {
