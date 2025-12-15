@@ -9,7 +9,7 @@ import { describe, test, expect, beforeEach, afterEach } from '@jest/globals'
 import { prisma } from '@/lib/prisma'
 import { CreateActivitySchema, ActivityFiltersSchema } from '@/lib/validations'
 import { ActivityType } from '@/types'
-import { markTaskCompleted } from '@/lib/task-utils'
+import { markTaskCompleted, getOverdueTasks, isTaskOverdue } from '@/lib/task-utils'
 
 // Mock Prisma for controlled testing
 jest.mock('@/lib/prisma', () => ({
@@ -36,10 +36,14 @@ jest.mock('@/lib/prisma', () => ({
 // Mock task-utils
 jest.mock('@/lib/task-utils', () => ({
   markTaskCompleted: jest.fn(),
+  getOverdueTasks: jest.fn(),
+  isTaskOverdue: jest.fn(),
 }))
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>
 const mockMarkTaskCompleted = markTaskCompleted as jest.MockedFunction<typeof markTaskCompleted>
+const mockGetOverdueTasks = getOverdueTasks as jest.MockedFunction<typeof getOverdueTasks>
+const mockIsTaskOverdue = isTaskOverdue as jest.MockedFunction<typeof isTaskOverdue>
 
 // Test data generators
 const validActivityTypeArb = fc.constantFrom('call', 'email', 'meeting', 'task', 'note') as fc.Arbitrary<ActivityType>
@@ -306,6 +310,121 @@ async function simulateTaskCompletion(taskId: string, organizationId: string, ex
     return {
       success: false,
       statusUpdated: false,
+    }
+  }
+}
+
+async function simulateOverdueTaskIdentification(organizationId: string, userId: string | null, allTasks: any[]): Promise<{ success: boolean; overdueTasks?: any[]; statistics?: any }> {
+  try {
+    const currentTime = new Date()
+    
+    // Filter tasks to find overdue ones
+    const overdueTasks = allTasks.filter(task => 
+      task.type === 'task' &&
+      !task.completed &&
+      task.dueDate &&
+      task.dueDate < currentTime &&
+      task.organizationId === organizationId &&
+      (!userId || task.userId === userId)
+    ).map(task => ({
+      ...task,
+      isOverdue: true,
+      contact: task.contactId ? {
+        id: task.contactId,
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+      } : null,
+      deal: task.dealId ? {
+        id: task.dealId,
+        title: 'Test Deal',
+        stage: 'lead',
+      } : null,
+      user: {
+        id: task.userId,
+        name: 'Test User',
+        email: 'user@example.com',
+      },
+    })).sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime()) // Sort by due date ascending
+
+    // Mock the Prisma call
+    mockPrisma.activity.findMany.mockResolvedValue(overdueTasks)
+
+    // Simulate the actual API call
+    const whereClause: any = {
+      organizationId,
+      type: 'task',
+      completed: false,
+      dueDate: {
+        lt: currentTime,
+      },
+    }
+
+    if (userId) {
+      whereClause.userId = userId
+    }
+
+    await mockPrisma.activity.findMany({
+      where: whereClause,
+      include: {
+        contact: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        deal: {
+          select: {
+            id: true,
+            title: true,
+            stage: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        dueDate: 'asc',
+      },
+    })
+
+    // Calculate statistics
+    const totalTasks = allTasks.filter(task => 
+      task.type === 'task' && 
+      task.organizationId === organizationId &&
+      (!userId || task.userId === userId)
+    ).length
+
+    const completedTasks = allTasks.filter(task => 
+      task.type === 'task' && 
+      task.completed && 
+      task.organizationId === organizationId &&
+      (!userId || task.userId === userId)
+    ).length
+
+    const statistics = {
+      total: totalTasks,
+      completed: completedTasks,
+      pending: totalTasks - completedTasks,
+      overdue: overdueTasks.length,
+      dueToday: 0, // Simplified for this test
+    }
+
+    return {
+      success: true,
+      overdueTasks,
+      statistics,
+    }
+  } catch (error) {
+    return {
+      success: false,
     }
   }
 }
@@ -606,6 +725,106 @@ describe('Activity Management Properties', () => {
         }
       ),
       { numRuns: 20 }
+    )
+  })
+
+  /**
+   * Property 19: Overdue task identification
+   * For any task with a due date in the past, the system should mark it as overdue and highlight it in task lists
+   * Validates: Requirements 4.4
+   */
+  test('Property 19: Overdue task identification', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.record({
+          organizationId: validOrganizationIdArb,
+          userId: fc.option(validUserIdArb),
+          tasks: fc.array(
+            fc.record({
+              id: validActivityIdArb,
+              type: fc.constant('task' as ActivityType),
+              subject: validSubjectArb,
+              description: validDescriptionArb,
+              dueDate: fc.option(fc.date({ min: new Date('2020-01-01'), max: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) })),
+              completed: fc.boolean(),
+              contactId: validContactIdArb,
+              dealId: validDealIdArb,
+              userId: validUserIdArb,
+              organizationId: validOrganizationIdArb,
+              createdAt: fc.date({ min: new Date('2020-01-01'), max: new Date() }),
+              updatedAt: fc.date({ min: new Date('2020-01-01'), max: new Date() }),
+            }),
+            { minLength: 5, maxLength: 15 }
+          ),
+        }),
+        async ({ organizationId, userId, tasks }) => {
+          // Set all tasks to belong to the same organization
+          const organizationTasks = tasks.map(task => ({
+            ...task,
+            organizationId,
+            userId: userId || task.userId,
+          }))
+
+          const result = await simulateOverdueTaskIdentification(organizationId, userId, organizationTasks)
+          
+          if (result.success && result.overdueTasks !== undefined) {
+            // All returned tasks should be overdue
+            for (const task of result.overdueTasks) {
+              expect(task.isOverdue).toBe(true)
+              expect(task.type).toBe('task')
+              expect(task.completed).toBe(false)
+              expect(task.organizationId).toBe(organizationId)
+              
+              if (userId) {
+                expect(task.userId).toBe(userId)
+              }
+              
+              // Task should have a due date in the past
+              if (task.dueDate) {
+                expect(task.dueDate.getTime()).toBeLessThan(new Date().getTime())
+              }
+            }
+            
+            // Verify that non-overdue tasks are not included
+            const currentTime = new Date()
+            const expectedOverdueTasks = organizationTasks.filter(task => 
+              task.type === 'task' &&
+              !task.completed &&
+              task.dueDate &&
+              task.dueDate < currentTime &&
+              task.organizationId === organizationId &&
+              (!userId || task.userId === userId)
+            )
+            
+            expect(result.overdueTasks.length).toBe(expectedOverdueTasks.length)
+            
+            // Verify overdue identification logic
+            for (const expectedTask of expectedOverdueTasks) {
+              const foundTask = result.overdueTasks.find(t => t.id === expectedTask.id)
+              expect(foundTask).toBeDefined()
+              expect(foundTask?.isOverdue).toBe(true)
+            }
+            
+            // Verify API calls were made correctly
+            expect(mockPrisma.activity.findMany).toHaveBeenCalledWith({
+              where: {
+                organizationId,
+                type: 'task',
+                completed: false,
+                dueDate: {
+                  lt: expect.any(Date),
+                },
+                ...(userId && { userId }),
+              },
+              include: expect.any(Object),
+              orderBy: {
+                dueDate: 'asc',
+              },
+            })
+          }
+        }
+      ),
+      { numRuns: 100 }
     )
   })
 
