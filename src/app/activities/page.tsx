@@ -49,7 +49,7 @@ export default function ActivitiesPage() {
       const response = await fetch('/api/contacts')
       if (response.ok) {
         const data = await response.json()
-        setContacts(data.data || [])
+        setContacts(data.data?.contacts || [])
       }
     } catch (error) {
       console.error('Error fetching contacts:', error)

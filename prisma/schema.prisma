@@ -38,6 +38,7 @@ model Company {
   phone          String?
   address        String?
   organizationId String   @map("organization_id")
+  version        Int      @default(1)
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -58,6 +59,7 @@ model Contact {
   jobTitle       String?  @map("job_title")
   companyId      String?  @map("company_id")
   organizationId String   @map("organization_id")
+  version        Int      @default(1)
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -81,6 +83,7 @@ model Deal {
   companyId         String?   @map("company_id")
   ownerId           String    @map("owner_id")
   organizationId    String    @map("organization_id")
+  version           Int       @default(1)
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
@@ -105,6 +108,7 @@ model Activity {
   dealId         String?   @map("deal_id")
   userId         String    @map("user_id")
   organizationId String    @map("organization_id")
+  version        Int       @default(1)
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 

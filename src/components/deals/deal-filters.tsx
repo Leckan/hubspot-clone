@@ -90,7 +90,7 @@ export function DealFilters({ filters, onFiltersChange, onClearFilters }: DealFi
 
         if (contactsRes.ok) {
           const contactsData = await contactsRes.json()
-          setContacts(contactsData.data || [])
+          setContacts(contactsData.data?.contacts || [])
         }
 
         if (companiesRes.ok) {

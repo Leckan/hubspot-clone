@@ -108,7 +108,7 @@ export function DealForm({ onSuccess, onCancel, initialData }: DealFormProps) {
 
         if (contactsRes.ok) {
           const contactsData = await contactsRes.json()
-          setContacts(contactsData.data || [])
+          setContacts(contactsData.data?.contacts || [])
         }
 
         if (companiesRes.ok) {

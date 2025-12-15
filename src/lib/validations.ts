@@ -89,7 +89,9 @@ export const CreateCompanySchema = z.object({
   organizationId: OrganizationIdSchema,
 });
 
-export const UpdateCompanySchema = CreateCompanySchema.partial().omit({ organizationId: true });
+export const UpdateCompanySchema = CreateCompanySchema.partial().omit({ organizationId: true }).extend({
+  version: z.number().positive().optional(), // For optimistic locking
+});
 
 // Contact validation schemas
 export const CreateContactSchema = z.object({
@@ -121,7 +123,9 @@ export const CreateContactSchema = z.object({
   organizationId: OrganizationIdSchema,
 });
 
-export const UpdateContactSchema = CreateContactSchema.partial().omit({ organizationId: true });
+export const UpdateContactSchema = CreateContactSchema.partial().omit({ organizationId: true }).extend({
+  version: z.number().positive().optional(), // For optimistic locking
+});
 
 // Deal validation schemas
 export const CreateDealSchema = z.object({
@@ -136,7 +140,9 @@ export const CreateDealSchema = z.object({
   organizationId: OrganizationIdSchema,
 });
 
-export const UpdateDealSchema = CreateDealSchema.partial().omit({ organizationId: true, ownerId: true });
+export const UpdateDealSchema = CreateDealSchema.partial().omit({ organizationId: true, ownerId: true }).extend({
+  version: z.number().positive().optional(), // For optimistic locking
+});
 
 // Activity validation schemas
 export const CreateActivitySchema = z.object({
@@ -151,7 +157,9 @@ export const CreateActivitySchema = z.object({
   organizationId: OrganizationIdSchema,
 });
 
-export const UpdateActivitySchema = CreateActivitySchema.partial().omit({ organizationId: true, userId: true });
+export const UpdateActivitySchema = CreateActivitySchema.partial().omit({ organizationId: true, userId: true }).extend({
+  version: z.number().positive().optional(), // For optimistic locking
+});
 
 // Search and filter validation schemas
 export const ContactFiltersSchema = z.object({

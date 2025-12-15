@@ -87,8 +87,8 @@ export function ContactList({ initialContacts = [], initialPagination }: Contact
       if (!response.ok) throw new Error("Failed to fetch contacts")
 
       const data = await response.json()
-      setContacts(data.data)
-      setPagination(data.pagination)
+      setContacts(data.data.contacts)
+      setPagination(data.data.pagination)
       setCurrentPage(page)
     } catch (error) {
       console.error("Error fetching contacts:", error)
