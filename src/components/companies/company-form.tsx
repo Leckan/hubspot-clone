@@ -31,7 +31,10 @@ const companyFormSchema = z.object({
     .min(1, "Company name is required")
     .max(255, "Company name too long"),
   domain: z.string()
-    .url("Invalid domain format")
+    .regex(
+      /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
+      "Invalid domain format (e.g., example.com or https://example.com)"
+    )
     .optional()
     .or(z.literal("")),
   industry: z.string().optional(),
@@ -65,6 +68,8 @@ interface CompanyFormProps {
 export function CompanyForm({ company, onSuccess, onCancel }: CompanyFormProps) {
   const { data: session } = useSession()
   const [loading, setLoading] = useState(false)
+  
+
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companyFormSchema),
@@ -93,10 +98,10 @@ export function CompanyForm({ company, onSuccess, onCancel }: CompanyFormProps) 
         },
         body: JSON.stringify({
           ...data,
-          // Convert empty strings to undefined for optional fields
+          // Convert empty strings and "none" values to undefined for optional fields
           domain: data.domain || undefined,
-          industry: data.industry || undefined,
-          size: data.size || undefined,
+          industry: data.industry && data.industry !== "none" ? data.industry : undefined,
+          size: data.size || undefined, // Remove the "none" check since size enum doesn't include "none"
           phone: data.phone || undefined,
           address: data.address || undefined,
         }),
@@ -148,7 +153,7 @@ export function CompanyForm({ company, onSuccess, onCancel }: CompanyFormProps) 
                 <FormLabel>Website Domain</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="https://example.com"
+                    placeholder="example.com or https://example.com"
                     {...field}
                   />
                 </FormControl>
@@ -189,7 +194,7 @@ export function CompanyForm({ company, onSuccess, onCancel }: CompanyFormProps) 
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">No industry</SelectItem>
+                    <SelectItem value="none">No industry</SelectItem>
                     <SelectItem value="technology">Technology</SelectItem>
                     <SelectItem value="healthcare">Healthcare</SelectItem>
                     <SelectItem value="finance">Finance</SelectItem>
@@ -224,7 +229,7 @@ export function CompanyForm({ company, onSuccess, onCancel }: CompanyFormProps) 
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">No size specified</SelectItem>
+                    <SelectItem value="none">No size specified</SelectItem>
                     <SelectItem value="startup">Startup (1-10 employees)</SelectItem>
                     <SelectItem value="small">Small (11-50 employees)</SelectItem>
                     <SelectItem value="medium">Medium (51-200 employees)</SelectItem>

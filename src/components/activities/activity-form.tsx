@@ -187,13 +187,13 @@ export function ActivityForm({
             <Label htmlFor="contactId">Associated Contact</Label>
             <Select
               value={watch('contactId') || ''}
-              onValueChange={(value) => setValue('contactId', value || undefined)}
+              onValueChange={(value) => setValue('contactId', value === "none" ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a contact (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No contact</SelectItem>
+                <SelectItem value="none">No contact</SelectItem>
                 {contacts.map((contact) => (
                   <SelectItem key={contact.id} value={contact.id}>
                     {contact.firstName} {contact.lastName} ({contact.email})
@@ -208,13 +208,13 @@ export function ActivityForm({
             <Label htmlFor="dealId">Associated Deal</Label>
             <Select
               value={watch('dealId') || ''}
-              onValueChange={(value) => setValue('dealId', value || undefined)}
+              onValueChange={(value) => setValue('dealId', value === "none" ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a deal (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No deal</SelectItem>
+                <SelectItem value="none">No deal</SelectItem>
                 {deals.map((deal) => (
                   <SelectItem key={deal.id} value={deal.id}>
                     {deal.title} ({deal.stage})

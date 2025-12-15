@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Card, CardContent } from "@/components/ui/card"
+
 import { DealStage } from "@/types"
 
 const dealFormSchema = z.object({
@@ -65,6 +65,8 @@ const STAGE_OPTIONS: { value: DealStage; label: string }[] = [
 export function DealForm({ onSuccess, onCancel, initialData }: DealFormProps) {
   const { data: session } = useSession()
   const [loading, setLoading] = useState(false)
+  
+
   const [contacts, setContacts] = useState<Contact[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
   const [loadingOptions, setLoadingOptions] = useState(true)
@@ -145,8 +147,8 @@ export function DealForm({ onSuccess, onCancel, initialData }: DealFormProps) {
         stage: data.stage,
         probability: parseInt(data.probability) || 0,
         expectedCloseDate: data.expectedCloseDate ? new Date(data.expectedCloseDate) : undefined,
-        contactId: data.contactId || undefined,
-        companyId: data.companyId || undefined,
+        contactId: data.contactId && data.contactId !== "none" ? data.contactId : undefined,
+        companyId: data.companyId && data.companyId !== "none" ? data.companyId : undefined,
         ownerId: session.user.id,
       }
 
@@ -273,7 +275,7 @@ export function DealForm({ onSuccess, onCancel, initialData }: DealFormProps) {
               <SelectValue placeholder={loadingOptions ? "Loading..." : "Select contact"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No contact</SelectItem>
+              <SelectItem value="none">No contact</SelectItem>
               {contacts.map((contact) => (
                 <SelectItem key={contact.id} value={contact.id}>
                   {contact.firstName} {contact.lastName}
@@ -299,7 +301,7 @@ export function DealForm({ onSuccess, onCancel, initialData }: DealFormProps) {
               <SelectValue placeholder={loadingOptions ? "Loading..." : "Select company"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No company</SelectItem>
+              <SelectItem value="none">No company</SelectItem>
               {companies.map((company) => (
                 <SelectItem key={company.id} value={company.id}>
                   {company.name}

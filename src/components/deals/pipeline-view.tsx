@@ -14,8 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { DealForm } from "./deal-form"
-import { DealDetail } from "./deal-detail"
+import { DealForm } from "@/components/deals/deal-form"
+import { DealDetail } from "@/components/deals/deal-detail"
 import { Deal, DealStage } from "@/types"
 
 interface DealWithRelations {

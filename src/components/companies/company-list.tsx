@@ -28,8 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { CompanyForm } from "./company-form"
-import { CompanyDetail } from "./company-detail"
+import { CompanyForm } from "@/components/companies/company-form"
+import { CompanyDetail } from "@/components/companies/company-detail"
 import { Company } from "@/types"
 
 interface CompanyWithCounts {
@@ -89,8 +89,8 @@ export function CompanyList({ initialCompanies = [], initialPagination }: Compan
       })
 
       if (search) params.append("search", search)
-      if (industry) params.append("industry", industry)
-      if (size) params.append("size", size)
+      if (industry && industry !== "all") params.append("industry", industry)
+      if (size && size !== "all") params.append("size", size)
 
       const response = await fetch(`/api/companies?${params}`)
       if (!response.ok) throw new Error("Failed to fetch companies")
@@ -109,9 +109,9 @@ export function CompanyList({ initialCompanies = [], initialPagination }: Compan
   // Handle search with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (searchTerm !== "" || selectedIndustry !== "" || selectedSize !== "") {
+      if (searchTerm !== "" || (selectedIndustry !== "" && selectedIndustry !== "all") || (selectedSize !== "" && selectedSize !== "all")) {
         fetchCompanies(1, searchTerm, selectedIndustry, selectedSize)
-      } else if (searchTerm === "" && selectedIndustry === "" && selectedSize === "") {
+      } else if (searchTerm === "" && (selectedIndustry === "" || selectedIndustry === "all") && (selectedSize === "" || selectedSize === "all")) {
         fetchCompanies(1)
       }
     }, 300)
@@ -210,7 +210,7 @@ export function CompanyList({ initialCompanies = [], initialPagination }: Compan
                 <SelectValue placeholder="Industry" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value="all">All Industries</SelectItem>
                 <SelectItem value="technology">Technology</SelectItem>
                 <SelectItem value="healthcare">Healthcare</SelectItem>
                 <SelectItem value="finance">Finance</SelectItem>
@@ -226,7 +226,7 @@ export function CompanyList({ initialCompanies = [], initialPagination }: Compan
                 <SelectValue placeholder="Size" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Sizes</SelectItem>
+                <SelectItem value="all">All Sizes</SelectItem>
                 <SelectItem value="startup">Startup</SelectItem>
                 <SelectItem value="small">Small</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>

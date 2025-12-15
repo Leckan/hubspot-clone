@@ -29,8 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { DealForm } from "./deal-form"
-import { DealDetail } from "./deal-detail"
+import { DealForm } from "@/components/deals/deal-form"
+import { DealDetail } from "@/components/deals/deal-detail"
 import { DealStage } from "@/types"
 
 interface DealWithRelations {
@@ -125,7 +125,7 @@ export function DealList({ initialDeals = [], initialPagination }: DealListProps
       })
 
       if (search) params.append("search", search)
-      if (stage) params.append("stage", stage)
+      if (stage && stage !== "all") params.append("stage", stage)
       if (ownerId) params.append("ownerId", ownerId)
 
       const response = await fetch(`/api/deals?${params}`)
@@ -145,9 +145,9 @@ export function DealList({ initialDeals = [], initialPagination }: DealListProps
   // Handle search with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (searchTerm !== "" || selectedStage !== "" || selectedOwner !== "") {
+      if (searchTerm !== "" || (selectedStage !== "" && selectedStage !== "all") || selectedOwner !== "") {
         fetchDeals(1, searchTerm, selectedStage, selectedOwner)
-      } else if (searchTerm === "" && selectedStage === "" && selectedOwner === "") {
+      } else if (searchTerm === "" && (selectedStage === "" || selectedStage === "all") && selectedOwner === "") {
         fetchDeals(1)
       }
     }, 300)
@@ -261,7 +261,7 @@ export function DealList({ initialDeals = [], initialPagination }: DealListProps
                 <SelectValue placeholder="Stage" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Stages</SelectItem>
+                <SelectItem value="all">All Stages</SelectItem>
                 <SelectItem value="lead">Lead</SelectItem>
                 <SelectItem value="qualified">Qualified</SelectItem>
                 <SelectItem value="proposal">Proposal</SelectItem>

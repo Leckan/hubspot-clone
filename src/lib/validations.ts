@@ -75,7 +75,13 @@ export const UpdateUserSchema = CreateUserSchema.partial().omit({ organizationId
 // Company validation schemas
 export const CreateCompanySchema = z.object({
   name: z.string().min(1, 'Company name is required').max(255, 'Company name too long'),
-  domain: z.string().url('Invalid domain format').optional().or(z.literal('')),
+  domain: z.string()
+    .regex(
+      /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
+      'Invalid domain format (e.g., example.com or https://example.com)'
+    )
+    .optional()
+    .or(z.literal('')),
   industry: z.string().max(100, 'Industry name too long').optional(),
   size: CompanySizeSchema.optional(),
   phone: PhoneSchema,

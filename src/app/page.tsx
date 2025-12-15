@@ -51,8 +51,11 @@ export default function Home() {
                     <Button onClick={() => router.push("/dashboard")}>
                       View Dashboard
                     </Button>
-                    <Button variant="outline" disabled>
-                      Manage Contacts (Coming Soon)
+                    <Button 
+                      variant="outline" 
+                      onClick={() => router.push("/contacts")}
+                    >
+                      Manage Contacts
                     </Button>
                   </div>
                 </div>

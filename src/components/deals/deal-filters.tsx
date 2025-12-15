@@ -124,22 +124,22 @@ export function DealFilters({ filters, onFiltersChange, onClearFilters }: DealFi
 
   // Update stage filter
   const handleStageChange = (stage: string) => {
-    onFiltersChange({ ...filters, stage: stage as DealStage || undefined })
+    onFiltersChange({ ...filters, stage: (stage === "all" ? undefined : stage as DealStage) })
   }
 
   // Update owner filter
   const handleOwnerChange = (ownerId: string) => {
-    onFiltersChange({ ...filters, ownerId: ownerId || undefined })
+    onFiltersChange({ ...filters, ownerId: (ownerId === "any" ? undefined : ownerId) })
   }
 
   // Update company filter
   const handleCompanyChange = (companyId: string) => {
-    onFiltersChange({ ...filters, companyId: companyId || undefined })
+    onFiltersChange({ ...filters, companyId: (companyId === "any" ? undefined : companyId) })
   }
 
   // Update contact filter
   const handleContactChange = (contactId: string) => {
-    onFiltersChange({ ...filters, contactId: contactId || undefined })
+    onFiltersChange({ ...filters, contactId: (contactId === "any" ? undefined : contactId) })
   }
 
   // Update amount range filters
@@ -202,7 +202,7 @@ export function DealFilters({ filters, onFiltersChange, onClearFilters }: DealFi
                 <SelectValue placeholder="Stage" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Stages</SelectItem>
+                <SelectItem value="all">All Stages</SelectItem>
                 {STAGE_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -238,7 +238,7 @@ export function DealFilters({ filters, onFiltersChange, onClearFilters }: DealFi
                           <SelectValue placeholder={loadingOptions ? "Loading..." : "Any owner"} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Any owner</SelectItem>
+                          <SelectItem value="any">Any owner</SelectItem>
                           {users.map((user) => (
                             <SelectItem key={user.id} value={user.id}>
                               {user.name}
@@ -258,7 +258,7 @@ export function DealFilters({ filters, onFiltersChange, onClearFilters }: DealFi
                           <SelectValue placeholder={loadingOptions ? "Loading..." : "Any company"} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Any company</SelectItem>
+                          <SelectItem value="any">Any company</SelectItem>
                           {companies.map((company) => (
                             <SelectItem key={company.id} value={company.id}>
                               {company.name}
@@ -282,7 +282,7 @@ export function DealFilters({ filters, onFiltersChange, onClearFilters }: DealFi
                         <SelectValue placeholder={loadingOptions ? "Loading..." : "Any contact"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any contact</SelectItem>
+                        <SelectItem value="any">Any contact</SelectItem>
                         {contacts.map((contact) => (
                           <SelectItem key={contact.id} value={contact.id}>
                             {contact.firstName} {contact.lastName} ({contact.email})

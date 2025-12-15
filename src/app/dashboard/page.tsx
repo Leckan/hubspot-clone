@@ -1,17 +1,49 @@
 "use client"
 
+import { useState } from "react"
 import { signOut } from "next-auth/react"
 import { useAuth } from "@/hooks/use-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { DealForm } from "@/components/deals/deal-form"
+import { CompanyForm } from "@/components/companies/company-form"
+import { toast } from "sonner"
 import Link from "next/link"
 
 function DashboardContent() {
   const { user, hasRole, hasPermission } = useAuth()
+  const [showCreateDealDialog, setShowCreateDealDialog] = useState(false)
+  const [showCreateCompanyDialog, setShowCreateCompanyDialog] = useState(false)
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/auth/signin" })
+  }
+
+  const handleDealSuccess = (deal: any) => {
+    toast.success("Deal created successfully!")
+    setShowCreateDealDialog(false)
+    // Optionally redirect to deals page or refresh data
+  }
+
+  const handleDealCancel = () => {
+    setShowCreateDealDialog(false)
+  }
+
+  const handleCompanySuccess = (company: any) => {
+    toast.success("Company created successfully!")
+    setShowCreateCompanyDialog(false)
+  }
+
+  const handleCompanyCancel = () => {
+    setShowCreateCompanyDialog(false)
   }
 
   return (
@@ -63,13 +95,21 @@ function DashboardContent() {
                   </Button>
                 </Link>
                 {hasPermission("write", "deal") && (
-                  <Button className="w-full" variant="outline" disabled>
-                    Create Deal (Coming Soon)
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={() => setShowCreateDealDialog(true)}
+                  >
+                    Create Deal
                   </Button>
                 )}
                 {hasPermission("write", "company") && (
-                  <Button className="w-full" variant="outline" disabled>
-                    Add Company (Coming Soon)
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={() => setShowCreateCompanyDialog(true)}
+                  >
+                    Add Company
                   </Button>
                 )}
               </div>
@@ -94,6 +134,38 @@ function DashboardContent() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Create Deal Dialog */}
+        <Dialog open={showCreateDealDialog} onOpenChange={setShowCreateDealDialog}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Deal</DialogTitle>
+              <DialogDescription>
+                Fill in the details below to create a new deal in your pipeline.
+              </DialogDescription>
+            </DialogHeader>
+            <DealForm
+              onSuccess={handleDealSuccess}
+              onCancel={handleDealCancel}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Create Company Dialog */}
+        <Dialog open={showCreateCompanyDialog} onOpenChange={setShowCreateCompanyDialog}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add New Company</DialogTitle>
+              <DialogDescription>
+                Fill in the company details below to add it to your CRM.
+              </DialogDescription>
+            </DialogHeader>
+            <CompanyForm
+              onSuccess={handleCompanySuccess}
+              onCancel={handleCompanyCancel}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
